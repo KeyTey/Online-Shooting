@@ -111,7 +111,7 @@ function drawRadar(ctxRadar) {
   ctxRadar.beginPath();
   ctxRadar.translate(x, y);
   ctxRadar.rotate(getRadian(gameObj.deg));
-  ctxRadar.fillStyle = 'rgba(0, 220, 0, 0.5)';
+  ctxRadar.fillStyle = 'rgba(0, 220, 0, 0.3)';
   ctxRadar.arc(0, 0, r, getRadian(15), getRadian(-15), true);
   ctxRadar.lineTo(0, 0);
   ctxRadar.fill();
@@ -157,7 +157,7 @@ function drawMissiles(ctxScore, missilesMany) {
 function drawAirTimer(ctxScore, airTime) {
   ctxScore.fillStyle = "rgb(0, 220, 250)";
   ctxScore.font = 'bold 40px Arial';
-  ctxScore.fillText(airTime, 110, 50);
+  ctxScore.fillText(airTime, 130, 50);
 }
 
 function drawMap(gameObj) {
