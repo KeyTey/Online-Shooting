@@ -358,7 +358,7 @@ function addNPC() {
       aliveTime: { 'clock': 0, 'seconds': 0 },
       score: 0,
       level: level,
-      displayName: 'NPC',
+      displayName: 'CPU',
       playerId: id
     };
     gameObj.NPCMap.set(id, playerObj);

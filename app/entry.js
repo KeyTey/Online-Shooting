@@ -93,16 +93,29 @@ function drawRadar(ctxRadar) {
   const x = gameObj.radarCanvasWidth / 2;
   const y = gameObj.radarCanvasHeight / 2;
   const r = gameObj.radarCanvasWidth * 1.5 / 2; // 対角線の長さの半分
+  switch (gameObj.myPlayerObj.direction) {
+    case 'up':
+      gameObj.deg = 270;
+      break;
+    case 'right':
+      gameObj.deg = 0;
+      break;
+    case 'down':
+      gameObj.deg = 90;
+      break;
+    case 'left':
+      gameObj.deg = 180;
+      break;
+  }
   ctxRadar.save(); // セーブ
   ctxRadar.beginPath();
   ctxRadar.translate(x, y);
   ctxRadar.rotate(getRadian(gameObj.deg));
   ctxRadar.fillStyle = 'rgba(0, 220, 0, 0.5)';
-  ctxRadar.arc(0, 0, r, getRadian(0), getRadian(-30), true);
+  ctxRadar.arc(0, 0, r, getRadian(15), getRadian(-15), true);
   ctxRadar.lineTo(0, 0);
   ctxRadar.fill();
   ctxRadar.restore(); // 元の設定を取得
-  gameObj.deg = (gameObj.deg + 2) % 360;
 }
 
 function drawSubmarine(ctxRadar, myPlayerObj) {
@@ -373,6 +386,7 @@ $(window).keydown((event) => {
       sendChangeDirection(socket, 'right');
       break;
     case ' ':
+      event.preventDefault();
       if (gameObj.myPlayerObj.missilesMany <= 0) break;
       sendMissileEmit(socket, gameObj.myPlayerObj.direction);
       break;
@@ -403,6 +417,7 @@ $(window).keydown((event) => {
   if (gameObj.playersMap.get(gameObj.myPlayerObj.playerId)) return;
   switch (event.key) {
     case ' ':
+      event.preventDefault();
       sendStart(socket);
       break;
   }
