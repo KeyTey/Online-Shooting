@@ -1,0 +1,11 @@
+extends layout
+
+block content
+  div.container
+    center.mt-3
+      canvas#radar
+      canvas#score
+    center.mt-3
+      input(type="text" placeholder="名前を入力してください")#displayName.form-control.w-50.d-inline
+      button#start.btn.btn-primary.ml-3 スタート
+  script(src="/javascripts/index/bundle.js", data-host=host)#main
