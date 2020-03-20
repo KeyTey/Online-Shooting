@@ -1,5 +1,5 @@
 {
-  "name": "game",
+  "name": "online-shooting",
   "version": "0.0.0",
   "private": true,
   "scripts": {
@@ -27,5 +27,8 @@
     "babel-loader": "^8.0.6",
     "webpack": "^4.42.0",
     "webpack-cli": "^3.3.11"
+  },
+  "engines": {
+    "node": "~10"
   }
 }

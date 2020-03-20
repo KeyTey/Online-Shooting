@@ -1,0 +1,9 @@
+{
+  "name": "online-shooting",
+  "description": "オンラインシューティングゲーム",
+  "logo": "",
+  "keywords": [
+    "node"
+  ],
+  "image": "heroku/nodejs"
+}
