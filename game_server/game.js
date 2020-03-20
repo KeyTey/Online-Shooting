@@ -337,7 +337,7 @@ function checkGetItem(playersMap, itemsMap, airMap, flyingMissilesMap) {
         // 得点の更新
         if (playersMap.has(flyingMissile.emitPlayerSocketId)) {
           const emitPlayer = playersMap.get(flyingMissile.emitPlayerSocketId);
-          emitPlayer.score += Math.floor(playerObj.score / 2);
+          emitPlayer.score += playerObj.score;
           playersMap.set(flyingMissile.emitPlayerSocketId, emitPlayer);
         }
         playerObj.isAlive = false;
