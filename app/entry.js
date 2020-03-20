@@ -134,11 +134,14 @@ function drawSubmarine(ctxRadar, myPlayerObj) {
     gameObj.submarineImage, -(gameObj.submarineImage.width / 2), -(gameObj.submarineImage.height / 2)
   );
   ctxRadar.restore();
+  if (myPlayerObj.isDamaged) {
+    drawBom(ctxRadar, gameObj.radarCanvasWidth / 2, gameObj.radarCanvasHeight / 2, myPlayerObj.damagedCount);
+  }
 }
 
-function drawBom(ctxRadar, drawX, drawY, deadCount) {
-  if (deadCount >= 60) return;
-  const drawBomNumber = Math.floor(deadCount / 6);
+function drawBom(ctxRadar, drawX, drawY, count) {
+  if (count >= 60) return;
+  const drawBomNumber = Math.floor(count / 6);
   const cropX = (drawBomNumber % (gameObj.bomListImage.width / gameObj.bomCellPx)) * gameObj.bomCellPx;
   const cropY = Math.floor(drawBomNumber / (gameObj.bomListImage.width / gameObj.bomCellPx)) * gameObj.bomCellPx;
   ctxRadar.drawImage(
@@ -217,6 +220,9 @@ function drawMap(gameObj) {
       gameObj.ctxRadar.fillStyle = `rgba(250, 250, 250, ${opacity})`;
       gameObj.ctxRadar.font = '12px Arial';
       gameObj.ctxRadar.fillText(enemyPlayerObj.displayName, distanceObj.drawX, distanceObj.drawY - 30);
+      if (enemyPlayerObj.isDamaged) {
+        drawBom(gameObj.ctxRadar, distanceObj.drawX, distanceObj.drawY, enemyPlayerObj.damagedCount);
+      }
     }
   }
   // アイテムの描画
@@ -503,6 +509,8 @@ socket.on('map data', (compressed) => {
     player.missilesMany = compressedPlayerData[7];
     player.airTime = compressedPlayerData[8];
     player.deadCount = compressedPlayerData[9];
+    player.isDamaged = compressedPlayerData[10];
+    player.damagedCount = compressedPlayerData[11];
     gameObj.playersMap.set(player.playerId, player);
     // 自分の情報も更新
     if (player.playerId === gameObj.myPlayerObj.playerId) {
@@ -514,6 +522,8 @@ socket.on('map data', (compressed) => {
       gameObj.myPlayerObj.missilesMany = compressedPlayerData[7];
       gameObj.myPlayerObj.airTime = compressedPlayerData[8];
       gameObj.myPlayerObj.deadCount = compressedPlayerData[9];
+      gameObj.myPlayerObj.isDamaged = compressedPlayerData[10];
+      gameObj.myPlayerObj.damagedCount = compressedPlayerData[11];
     }
   }
   gameObj.itemsMap = new Map();

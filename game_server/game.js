@@ -5,7 +5,7 @@ const gameObj = {
   itemsMap: new Map(),
   airMap: new Map(),
   NPCMap: new Map(),
-  addingNPCPlayerNum: 5,
+  addingNPCPlayerNum: 8,
   flyingMissilesMap: new Map(),
   missileAliveFlame: 300,
   missileSpeed: 3,
@@ -18,8 +18,9 @@ const gameObj = {
   airTotal: 10,
   itemRadius: 4,
   airRadius: 6,
-  addAirTime: 10,
+  addAirTime: 4,
   itemPoint: 4,
+  missileDamage: 1000,
   submarineImageWidth: 42
 };
 
@@ -87,12 +88,14 @@ function newConnection(socketId, displayName) {
     playerId: playerId,
     displayName: displayName,
     isAlive: true,
+    isDamaged: false,
     direction: 'right',
     speed: 1,
     missilesMany: 0,
     airTime: 99,
     aliveTime: { 'clock': 0, 'seconds': 0 },
     deadCount: 0,
+    damagedCount: 0,
     score: 0
   }
   gameObj.playersMap.set(socketId, playerObj);
@@ -122,6 +125,8 @@ function getMapData() {
     playerDataForSend.push(player.missilesMany);
     playerDataForSend.push(player.airTime);
     playerDataForSend.push(player.deadCount);
+    playerDataForSend.push(player.isDamaged);
+    playerDataForSend.push(player.damagedCount);
     playersArray.push(playerDataForSend);
   }
   for (let [id, item] of gameObj.itemsMap) {
@@ -229,6 +234,15 @@ function movePlayers(playersMap) {
       }
       continue;
     }
+    if (player.isDamaged) {
+      if (player.damagedCount < 70) {
+        player.damagedCount += 1;
+      }
+      else {
+        player.isDamaged = false;
+        player.damagedCount = 0;
+      }
+    }
     switch (player.direction) {
       case 'left':
         player.x -= player.speed;
@@ -334,14 +348,22 @@ function checkGetItem(playersMap, itemsMap, airMap, flyingMissilesMap) {
         distanceObj.distanceY <= (gameObj.submarineImageWidth / 2 + gameObj.missileHeight / 2) &&
         playerObj.playerId !== flyingMissile.emitPlayerId
       ) {
-        // 得点の更新
+        // スコア更新
         if (playersMap.has(flyingMissile.emitPlayerSocketId)) {
           const emitPlayer = playersMap.get(flyingMissile.emitPlayerSocketId);
-          emitPlayer.score += playerObj.score;
+          emitPlayer.score += Math.min(playerObj.score, gameObj.missileDamage);
           playersMap.set(flyingMissile.emitPlayerSocketId, emitPlayer);
         }
-        playerObj.isAlive = false;
-        flyingMissilesMap.delete(missileId); // ミサイル（魚雷）の削除
+        playerObj.score -= gameObj.missileDamage; // ダメージ計算
+        // スコア０以下で死亡
+        if (playerObj.score <= 0) {
+          playerObj.score = 0;
+          playerObj.isAlive = false;
+        }
+        else {
+          playerObj.isDamaged = true;
+        }
+        flyingMissilesMap.delete(missileId); // ミサイル削除
       }
     }
   }
@@ -359,7 +381,9 @@ function addNPC() {
       x: playerX,
       y: playerY,
       isAlive: true,
+      isDamaged: false,
       deadCount: 0,
+      damagedCount: 0,
       direction: 'right',
       speed: 1,
       missilesMany: 0,
