@@ -8,7 +8,7 @@ const gameObj = {
   addingNPCPlayerNum: 5,
   flyingMissilesMap: new Map(),
   missileAliveFlame: 300,
-  missileSpeed: 3,
+  missileSpeed: 9,
   missileWidth: 10,
   missileHeight: 10,
   directions: ['left', 'up', 'down', 'right'],
@@ -40,13 +40,13 @@ const gameTicker = setInterval(() => {
   // アイテムの取得チェック
   checkGetItem(playersAndNPCMap, gameObj.itemsMap, gameObj.airMap, gameObj.flyingMissilesMap);
   addNPC();
-}, 10);
+}, 30);
 
 function NPCMoveDecision(NPCMap) {
   for (let [NPCId, NPCObj] of NPCMap) {
     switch (NPCObj.level) {
       case 1:
-        NPCObj.speed = 1;
+        NPCObj.speed = 3;
         if (Math.floor(Math.random() * 100) === 1) {
           NPCObj.direction = gameObj.directions[Math.floor(Math.random() * gameObj.directions.length)];
         }
@@ -55,7 +55,7 @@ function NPCMoveDecision(NPCMap) {
         }
         break;
       case 2:
-        NPCObj.speed = 2;
+        NPCObj.speed = 6;
         if (Math.floor(Math.random() * 50) === 1) {
           NPCObj.direction = gameObj.directions[Math.floor(Math.random() * gameObj.directions.length)];
         }
@@ -64,7 +64,7 @@ function NPCMoveDecision(NPCMap) {
         }
         break;
       case 3:
-        NPCObj.speed = 2.5;
+        NPCObj.speed = 8;
         if (Math.floor(Math.random() * 20) === 1) {
           NPCObj.direction = gameObj.directions[Math.floor(Math.random() * gameObj.directions.length)];
         }
@@ -87,7 +87,7 @@ function newConnection(socketId, displayName) {
     displayName: displayName,
     isAlive: true,
     direction: 'right',
-    speed: 1,
+    speed: 3,
     missilesMany: 0,
     airTime: 99,
     aliveTime: { 'clock': 0, 'seconds': 0 },
@@ -153,12 +153,12 @@ function updatePlayerDirection(socketId, direction) {
 
 function updateSpeedUp(socketId) {
   const playerObj = gameObj.playersMap.get(socketId);
-  playerObj.speed = 2;
+  playerObj.speed = 6;
 }
 
 function updateSpeedDown(socketId) {
   const playerObj = gameObj.playersMap.get(socketId);
-  playerObj.speed = 1;
+  playerObj.speed = 3;
 }
 
 function missileEmit(socketId, direction) {
@@ -220,7 +220,7 @@ function movePlayers(playersMap) {
   for (let [playerId, player] of playersMap) {
     if (!player.isAlive) {
       if (player.deadCount < 70) {
-        player.deadCount += 0.5;
+        player.deadCount += 2;
       }
       else {
         gameObj.playersMap.delete(playerId);
@@ -352,7 +352,7 @@ function addNPC() {
       isAlive: true,
       deadCount: 0,
       direction: 'right',
-      speed: 1,
+      speed: 0,
       missilesMany: 0,
       airTime: 99,
       aliveTime: { 'clock': 0, 'seconds': 0 },

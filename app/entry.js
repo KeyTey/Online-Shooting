@@ -12,7 +12,6 @@ const gameObj = {
   airRadius: 5,
   bomCellPx: 32,
   deg: 0,
-  counter: 0,
   rotationDegreeByDirection: {
     'left': 0,
     'up': 270,
@@ -76,7 +75,6 @@ function tickerRadar() {
   if (gameObj.myPlayerObj.firstPlay) {
     drawStart(gameObj.ctxRadar);
   }
-  gameObj.counter = (gameObj.counter + 0.5) % 10000;
 }
 
 function tickerScore() {
@@ -86,7 +84,7 @@ function tickerScore() {
   drawMissiles(gameObj.ctxScore, gameObj.myPlayerObj.missilesMany);
 }
 
-setInterval(tickerRadar, 10);
+setInterval(tickerRadar, 30);
 setInterval(tickerScore, 100);
 
 function drawRadar(ctxRadar) {
@@ -102,7 +100,7 @@ function drawRadar(ctxRadar) {
   ctxRadar.lineTo(0, 0);
   ctxRadar.fill();
   ctxRadar.restore(); // 元の設定を取得
-  gameObj.deg = (gameObj.deg + 2) % 360;
+  gameObj.deg = (gameObj.deg + 6) % 360;
 }
 
 function drawSubmarine(ctxRadar, myPlayerObj) {
