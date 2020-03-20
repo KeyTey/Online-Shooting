@@ -163,6 +163,7 @@ function drawAirTimer(ctxScore, airTime) {
 }
 
 function drawScore(ctxScore, score) {
+  if (!score) score = 0;
   ctxScore.fillStyle = "rgb(26, 26, 26)";
   ctxScore.font = '28px Arial';
   ctxScore.fillText(`score: ${score}`, 10, 180);
@@ -179,8 +180,8 @@ function drawRanking(ctxScore, playersMap) {
     if (!playersArray[i]) return;
     const rank = i + 1;
     ctxScore.fillText(
-      `${rank}位 ${playersArray[i][1].displayName} ${playersArray[i][1].score}`,
-      10, 220 + (rank * 26)
+      `${rank}位 ${playersArray[i][1].displayName} : ${playersArray[i][1].score}`,
+      10, 230 + (rank * 30)
     );
   }
 }

@@ -19,8 +19,7 @@ const gameObj = {
   itemRadius: 4,
   airRadius: 6,
   addAirTime: 10,
-  itemPoint: 3,
-  killPoint: 500,
+  itemPoint: 4,
   submarineImageWidth: 42
 };
 
@@ -257,7 +256,7 @@ function movePlayers(playersMap) {
         player.airTime = 0;
         player.isAlive = false;
       }
-      player.score += 1;
+      player.score += 2;
     }
   }
 }
@@ -335,14 +334,14 @@ function checkGetItem(playersMap, itemsMap, airMap, flyingMissilesMap) {
         distanceObj.distanceY <= (gameObj.submarineImageWidth / 2 + gameObj.missileHeight / 2) &&
         playerObj.playerId !== flyingMissile.emitPlayerId
       ) {
-        playerObj.isAlive = false;
-        flyingMissilesMap.delete(missileId); // ミサイル（魚雷）の削除
         // 得点の更新
         if (playersMap.has(flyingMissile.emitPlayerSocketId)) {
           const emitPlayer = playersMap.get(flyingMissile.emitPlayerSocketId);
-          emitPlayer.score += gameObj.killPoint;
+          emitPlayer.score += Math.floor(playerObj.score / 2);
           playersMap.set(flyingMissile.emitPlayerSocketId, emitPlayer);
         }
+        playerObj.isAlive = false;
+        flyingMissilesMap.delete(missileId); // ミサイル（魚雷）の削除
       }
     }
   }
@@ -368,7 +367,7 @@ function addNPC() {
       aliveTime: { 'clock': 0, 'seconds': 0 },
       score: 0,
       level: level,
-      displayName: 'CPU',
+      displayName: `CPU-${id.slice(0, 3)}`,
       playerId: id
     };
     gameObj.NPCMap.set(id, playerObj);
