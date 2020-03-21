@@ -5,20 +5,20 @@ const gameObj = {
   itemsMap: new Map(),
   airMap: new Map(),
   NPCMap: new Map(),
-  addingNPCPlayerNum: 8,
+  addingNPCPlayerNum: 12,
   flyingMissilesMap: new Map(),
   missileAliveFlame: 300,
   missileSpeed: 3,
   missileWidth: 10,
   missileHeight: 10,
   directions: ['left', 'up', 'down', 'right'],
-  fieldWidth: 1000,
-  fieldHeight: 1000,
-  itemTotal: 15,
-  airTotal: 10,
+  fieldWidth: 1500,
+  fieldHeight: 1500,
+  itemTotal: 30,
+  airTotal: 20,
   itemRadius: 4,
   airRadius: 6,
-  addAirTime: 4,
+  addAirTime: 8,
   itemPoint: 4,
   missileDamage: 1000,
   submarineImageWidth: 42
@@ -65,6 +65,7 @@ function decideNPCDirection(NPCObj, target, probability) {
   if (Math.random() < probability) {
     if (!target) return randomDirection(NPCObj);
     if (target.playerId === NPCObj.playerId) return randomDirection(NPCObj);
+    return randomDirection(NPCObj);
     const distanceObj = calcBetweenTwoPoints(NPCObj.x, NPCObj.y, target.x, target.y, gameObj.fieldWidth, gameObj.fieldHeight);
     if (Math.random() < 0.5) {
       if (NPCObj.x + distanceObj.distanceX === target.x) return NPCObj.direction = 'right';
@@ -383,7 +384,9 @@ function checkGetItem(playersMap, itemsMap, airMap, flyingMissilesMap) {
         // スコア更新
         if (playersMap.has(flyingMissile.emitPlayerSocketId)) {
           const emitPlayer = playersMap.get(flyingMissile.emitPlayerSocketId);
-          emitPlayer.score += Math.min(playerObj.score, gameObj.missileDamage);
+          let score = Math.min(playerObj.score, 500);
+          score = Math.max(score, 100);
+          emitPlayer.score += score;
           playersMap.set(flyingMissile.emitPlayerSocketId, emitPlayer);
         }
         playerObj.score -= gameObj.missileDamage; // ダメージ計算
