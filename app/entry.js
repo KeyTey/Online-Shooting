@@ -25,7 +25,7 @@ const gameObj = {
     'down': 180,
     'right': 90
   },
-  myDisplayName: $('#main').attr('data-displayName'),
+  myDisplayName: '',
   myPlayerObj: { x: 500, y: 500, isAlive: false, airTime: 99, firstPlay: true },
   fieldWidth: 1000,
   fieldHeight: 1000,
@@ -43,11 +43,6 @@ function init() {
   radarCanvas.width = gameObj.radarCanvasWidth;
   radarCanvas.height = gameObj.radarCanvasHeight;
   gameObj.ctxRadar = radarCanvas.getContext('2d');
-  // ランキング用のキャンバス
-  const scoreCanvas = $('#score')[0];
-  scoreCanvas.width = gameObj.scoreCanvasWidth;
-  scoreCanvas.height = gameObj.scoreCanvasHeight;
-  gameObj.ctxScore = scoreCanvas.getContext('2d');
   // 潜水艦の画像
   gameObj.submarineImage = new Image();
   gameObj.submarineImage.src = '/images/submarine.png';
@@ -81,11 +76,10 @@ function tickerRadar() {
 
 function tickerScore() {
   if (!gameObj.myPlayerObj || !gameObj.playersMap) return;
-  gameObj.ctxScore.clearRect(0, 0, gameObj.scoreCanvasWidth, gameObj.scoreCanvasHeight);
-  drawAirTimer(gameObj.ctxScore, gameObj.myPlayerObj.airTime);
-  drawMissiles(gameObj.ctxScore, gameObj.myPlayerObj.missilesMany);
-  drawScore(gameObj.ctxScore, gameObj.myPlayerObj.score);
-  drawRanking(gameObj.ctxScore, gameObj.playersMap);
+  drawAirTimer(gameObj.myPlayerObj.airTime);
+  drawMissiles(gameObj.myPlayerObj.missilesMany);
+  drawScore(gameObj.myPlayerObj.score);
+  drawRanking(gameObj.playersMap);
 }
 
 setInterval(tickerRadar, 10);
@@ -153,39 +147,40 @@ function drawBom(ctxRadar, drawX, drawY, count) {
   ); // 画像データ、切り抜き左、切り抜き上、幅、幅、表示x、表示y、幅、幅
 }
 
-function drawMissiles(ctxScore, missilesMany) {
+function drawMissiles(missilesMany) {
+  $('#missiles').empty();
   for (let i = 0; i < missilesMany; i++) {
-    ctxScore.drawImage(gameObj.missileImage, 50 * i, 80);
+    $('#missiles').append('<img src="/images/missile.png">');
   }
 }
 
-function drawAirTimer(ctxScore, airTime) {
-  ctxScore.fillStyle = "rgb(0, 220, 250)";
-  ctxScore.font = 'bold 40px Arial';
-  ctxScore.fillText(airTime, 130, 50);
+function drawAirTimer(airTime) {
+  $('#air-time').text(airTime);
 }
 
-function drawScore(ctxScore, score) {
+function drawScore(score) {
+  if (!gameObj.myPlayerObj.isAlive) return;
   if (!score) score = 0;
-  ctxScore.fillStyle = "rgb(26, 26, 26)";
-  ctxScore.font = '28px Arial';
-  ctxScore.fillText(`score: ${score}`, 10, 180);
+  $('#score').text(score);
 }
 
-function drawRanking(ctxScore, playersMap) {
+function drawRanking(playersMap) {
   const playersArray = [].concat(Array.from(playersMap));
   playersArray.sort((a, b) => (b[1].score - a[1].score));
-  ctxScore.fillStyle = "rgb(0, 0, 0)";
-  ctxScore.fillRect(0, 220, gameObj.scoreCanvasWidth, 3);
-  ctxScore.fillStyle = "rgb(26, 26, 26)";
-  ctxScore.font = '20px Arial';
-  for (let i = 0; i < 10; i++) {
+  $('#ranking').empty();
+  for (let i = 0; i < 8; i++) {
     if (!playersArray[i]) return;
     const rank = i + 1;
-    ctxScore.fillText(
-      `${rank}位 ${playersArray[i][1].displayName} : ${playersArray[i][1].score}`,
-      10, 230 + (rank * 30)
-    );
+    let score = playersArray[i][1].score;
+    if (score > 99999) score = 'MAX☆';
+    $('#ranking').append(`<tr id="${rank}">
+      <td>${rank}位</td>
+      <td>${playersArray[i][1].displayName}</td>
+      <td>${score}</td>
+    </tr>`);
+    if (gameObj.myPlayerObj.playerId === playersArray[i][0]) {
+      $('#ranking').find(`#${rank}`).css('color', '#DD0000');
+    }
   }
 }
 

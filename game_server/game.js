@@ -44,32 +44,64 @@ const gameTicker = setInterval(() => {
   addNPC();
 }, 10);
 
+function getTopPlayer() {
+  let target = null;
+  let maxScore = 0;
+  const playersAndNPCMap = new Map(Array.from(gameObj.playersMap).concat(Array.from(gameObj.NPCMap)));
+  for (let [id, player] of playersAndNPCMap) {
+    if (player.score > maxScore) {
+      maxScore = player.score;
+      target = player;
+    }
+  }
+  return target;
+}
+
+function randomDirection(NPCObj) {
+  NPCObj.direction = gameObj.directions[Math.floor(Math.random() * gameObj.directions.length)];
+}
+
+function decideNPCDirection(NPCObj, target, probability) {
+  if (Math.random() < probability) {
+    if (!target) return randomDirection(NPCObj);
+    if (target.playerId === NPCObj.playerId) return randomDirection(NPCObj);
+    const distanceObj = calcBetweenTwoPoints(NPCObj.x, NPCObj.y, target.x, target.y, gameObj.fieldWidth, gameObj.fieldHeight);
+    if (Math.random() < 0.5) {
+      if (NPCObj.x + distanceObj.distanceX === target.x) return NPCObj.direction = 'right';
+      if (NPCObj.x - distanceObj.distanceX === target.x) return NPCObj.direction = 'left';
+      if (NPCObj.x + distanceObj.distanceX === target.x + gameObj.fieldWidth) return NPCObj.direction = 'right';
+      if (NPCObj.x - distanceObj.distanceX === target.x - gameObj.fieldWidth) return NPCObj.direction = 'left';
+    }
+    else {
+      if (NPCObj.y + distanceObj.distanceY === target.y) return NPCObj.direction = 'down';
+      if (NPCObj.y - distanceObj.distanceY === target.y) return NPCObj.direction = 'up';
+      if (NPCObj.y + distanceObj.distanceY === target.y + gameObj.fieldHeight) return NPCObj.direction = 'down';
+      if (NPCObj.y - distanceObj.distanceY === target.y - gameObj.fieldHeight) return NPCObj.direction = 'up';
+    }
+  }
+}
+
 function NPCMoveDecision(NPCMap) {
+  const target = getTopPlayer();
   for (let [NPCId, NPCObj] of NPCMap) {
     switch (NPCObj.level) {
       case 1:
         NPCObj.speed = 1;
-        if (Math.floor(Math.random() * 100) === 1) {
-          NPCObj.direction = gameObj.directions[Math.floor(Math.random() * gameObj.directions.length)];
-        }
+        decideNPCDirection(NPCObj, target, 0.01);
         if (NPCObj.missilesMany > 0 && Math.floor(Math.random() * 200) === 1) {
           missileEmit(NPCObj.playerId, NPCObj.direction);
         }
         break;
       case 2:
         NPCObj.speed = 2;
-        if (Math.floor(Math.random() * 50) === 1) {
-          NPCObj.direction = gameObj.directions[Math.floor(Math.random() * gameObj.directions.length)];
-        }
+        decideNPCDirection(NPCObj, target, 0.02);
         if (NPCObj.missilesMany > 0 && Math.floor(Math.random() * 150) === 1) {
           missileEmit(NPCObj.playerId, NPCObj.direction);
         }
         break;
       case 3:
         NPCObj.speed = 2.5;
-        if (Math.floor(Math.random() * 20) === 1) {
-          NPCObj.direction = gameObj.directions[Math.floor(Math.random() * gameObj.directions.length)];
-        }
+        decideNPCDirection(NPCObj, target, 0.05);
         if (NPCObj.missilesMany > 0 && Math.floor(Math.random() * 100) === 1) {
           missileEmit(NPCObj.playerId, NPCObj.direction);
         }

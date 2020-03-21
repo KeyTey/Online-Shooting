@@ -2,10 +2,21 @@ extends layout
 
 block content
   div.container.my-4
-    center
-      canvas#radar
-      canvas#score
-    center.mt-4
-      input(type="text", placeholder="名前を入力してください")#displayName.form-control.w-50.d-inline
+    div.row.justify-content-center
+      div
+        canvas#radar
+      div#score-board
+        h1#air-time.text-center.mt-4 0
+        div#missiles
+        p#score-text score: #[span#score 0]
+        hr
+        table
+          colgroup
+            col.rank
+            col.name
+            col.score
+          tbody#ranking
+    div.row.justify-content-center.mt-4
+      input(type="text", placeholder="名前を入力してください")#displayName.form-control
       button#start.btn.btn-primary.ml-3 スタート
   script(src="/javascripts/index/bundle.js", data-host=host)#main
