@@ -208,6 +208,9 @@ function drawMissiles(missilesMany) {
 // 酸素タイマーの表示
 function drawAirTimer(airTime) {
   $('#air-time').text(airTime);
+  if (airTime < 20) $('#air-time').css('color', 'rgb(230, 0, 0)');
+  else if (airTime < 40) $('#air-time').css('color', 'rgb(255, 160, 0)');
+  else $('#air-time').css('color', 'rgb(0, 220, 250)');
 }
 
 // スコアの表示

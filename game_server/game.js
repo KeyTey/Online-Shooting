@@ -18,9 +18,8 @@ const gameObj = {
   airTotal: 20,
   itemRadius: 4,
   airRadius: 6,
-  addAirTime: 8,
+  addAirTime: 10,
   itemPoint: 4,
-  missileDamage: 1000,
   playerImageWidth: 42
 };
 
@@ -41,8 +40,8 @@ const gameTicker = setInterval(() => {
   movePlayers(gameObj.NPCMap);
   // ミサイルの移動
   moveMissile(gameObj.flyingMissilesMap);
-  // アイテムの取得チェック
-  checkGetItem(playersAndNPCMap, gameObj.itemsMap, gameObj.airMap, gameObj.flyingMissilesMap);
+  // 当たり判定
+  detectCollision(playersAndNPCMap, gameObj.itemsMap, gameObj.airMap, gameObj.flyingMissilesMap);
   addNPC();
 }, 10);
 
@@ -354,9 +353,9 @@ function moveMissile(flyingMissilesMap) {
   }
 }
 
-// アイテムの取得チェックおよびミサイルの当たり判定
-function checkGetItem(playersMap, itemsMap, airMap, flyingMissilesMap) {
-  for (let [hashKey, playerObj] of playersMap) {
+// 当たり判定
+function detectCollision(playersMap, itemsMap, airMap, flyingMissilesMap) {
+  for (let [playerKey, playerObj] of playersMap) {
     if (!playerObj.isAlive) continue;
     // ミサイル (赤丸)
     for (let [itemKey, itemObj] of itemsMap) {
@@ -402,15 +401,19 @@ function checkGetItem(playersMap, itemsMap, airMap, flyingMissilesMap) {
         // スコア更新
         if (playersMap.has(flyingMissile.emitPlayerSocketId)) {
           const emitPlayer = playersMap.get(flyingMissile.emitPlayerSocketId);
-          let score = Math.min(playerObj.score, 500);
-          score = Math.max(score, 100);
+          let score = Math.min(playerObj.score, 1000);
+          score = Math.max(score, 500);
           emitPlayer.score += score;
           playersMap.set(flyingMissile.emitPlayerSocketId, emitPlayer);
         }
-        playerObj.score -= gameObj.missileDamage; // ダメージ計算
-        // スコア０以下で死亡
-        if (playerObj.score <= 0) {
-          playerObj.score = 0;
+        playerObj.score = Math.max(playerObj.score - 1000, 0); // スコアダメージ
+        playerObj.airTime = Math.max(playerObj.airTime - 20, 0); // 酸素ダメージ
+        // スコア０で死亡 (NPCのみ)
+        if (playerObj.score === 0 && gameObj.NPCMap.get(playerKey)) {
+          playerObj.isAlive = false;
+        }
+        // 酸素０で死亡
+        else if (playerObj.airTime === 0) {
           playerObj.isAlive = false;
         }
         else {
