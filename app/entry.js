@@ -71,7 +71,6 @@ function tickerRadar() {
   if (gameObj.myPlayerObj.firstPlay) {
     drawStart(gameObj.ctxRadar);
   }
-  sendPlayerEmit(socket, gameObj.myPlayerObj);
 }
 
 function tickerScore() {
@@ -80,6 +79,7 @@ function tickerScore() {
   drawMissiles(gameObj.myPlayerObj.missilesMany);
   drawScore(gameObj.myPlayerObj.score);
   drawRanking(gameObj.playersMap);
+  sendPlayerEmit(socket, gameObj.myPlayerObj);
 }
 
 setInterval(tickerRadar, 10);
@@ -535,9 +535,6 @@ socket.on('map data', (compressed) => {
     gameObj.playersMap.set(player.playerId, player);
     // 自分の情報も更新
     if (player.playerId === gameObj.myPlayerObj.playerId) {
-      gameObj.myPlayerObj.x = compressedPlayerData[0];
-      gameObj.myPlayerObj.y = compressedPlayerData[1];
-      gameObj.myPlayerObj.displayName = compressedPlayerData[3];
       gameObj.myPlayerObj.score = compressedPlayerData[4];
       gameObj.myPlayerObj.isAlive = compressedPlayerData[5];
       gameObj.myPlayerObj.missilesMany = compressedPlayerData[7];
