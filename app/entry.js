@@ -42,9 +42,9 @@ function init() {
   radarCanvas.width = gameObj.radarCanvasWidth;
   radarCanvas.height = gameObj.radarCanvasHeight;
   gameObj.ctxRadar = radarCanvas.getContext('2d');
-  // 潜水艦の画像
-  gameObj.submarineImage = new Image();
-  gameObj.submarineImage.src = '/images/submarine.png';
+  // プレイヤーの画像
+  gameObj.playerImage = new Image();
+  gameObj.playerImage.src = '/images/player.png';
   // 敵プレイヤーの画像
   gameObj.enemyImage = new Image();
   gameObj.enemyImage.src = '/images/enemy.png';
@@ -60,11 +60,11 @@ init();
 
 function tickerRadar() {
   if (!gameObj.myPlayerObj || !gameObj.playersMap) return;
-  updatePlayerState(gameObj.myPlayerObj);
+  movePlayer(gameObj.myPlayerObj);
   gameObj.ctxRadar.clearRect(0, 0, gameObj.radarCanvasWidth, gameObj.radarCanvasHeight);
   if (gameObj.myPlayerObj.isAlive) drawRadar(gameObj.ctxRadar);
   drawMap(gameObj);
-  drawSubmarine(gameObj.ctxRadar, gameObj.myPlayerObj);
+  drawPlayer(gameObj.ctxRadar, gameObj.myPlayerObj);
   if (!gameObj.myPlayerObj.isAlive && gameObj.myPlayerObj.deadCount > 60) {
     drawGameOver(gameObj.ctxRadar);
   }
@@ -85,15 +85,17 @@ function tickerScore() {
 setInterval(tickerRadar, 10);
 setInterval(tickerScore, 100);
 
+// サーバーへプレイヤーデータを送る
 function sendPlayerEmit(socket, player) {
-  const playerDataForSend = [];
-  playerDataForSend.push(player.x);
-  playerDataForSend.push(player.y);
-  playerDataForSend.push(player.direction);
-  socket.emit('update player', playerDataForSend);
+  const playerData = [];
+  playerData.push(player.x);
+  playerData.push(player.y);
+  playerData.push(player.direction);
+  socket.emit('update player', playerData);
 }
 
-function updatePlayerState(player) {
+// プレイヤーの移動
+function movePlayer(player) {
   switch (player.direction) {
     case 'left':
       player.x -= player.speed;
@@ -114,6 +116,7 @@ function updatePlayerState(player) {
   if (player.y > gameObj.fieldHeight) player.y -= gameObj.fieldHeight;
 }
 
+// レーダーの描画
 function drawRadar(ctxRadar) {
   const x = gameObj.radarCanvasWidth / 2;
   const y = gameObj.radarCanvasHeight / 2;
@@ -143,7 +146,8 @@ function drawRadar(ctxRadar) {
   ctxRadar.restore(); // 元の設定を取得
 }
 
-function drawSubmarine(ctxRadar, myPlayerObj) {
+// プレイヤーの描画
+function drawPlayer(ctxRadar, myPlayerObj) {
   if (!myPlayerObj.isAlive) {
     drawBom(ctxRadar, gameObj.radarCanvasWidth / 2, gameObj.radarCanvasHeight / 2, myPlayerObj.deadCount);
     return;
@@ -154,7 +158,7 @@ function drawSubmarine(ctxRadar, myPlayerObj) {
   ctxRadar.rotate(getRadian(rotationDegree));
   if (myPlayerObj.direction === 'left') ctxRadar.scale(-1, 1);
   ctxRadar.drawImage(
-    gameObj.submarineImage, -(gameObj.submarineImage.width / 2), -(gameObj.submarineImage.height / 2)
+    gameObj.playerImage, -(gameObj.playerImage.width / 2), -(gameObj.playerImage.height / 2)
   );
   ctxRadar.restore();
   if (myPlayerObj.isDamaged) {
@@ -162,6 +166,7 @@ function drawSubmarine(ctxRadar, myPlayerObj) {
   }
 }
 
+// 爆発の描画
 function drawBom(ctxRadar, drawX, drawY, count) {
   if (count >= 60) return;
   const drawBomNumber = Math.floor(count / 6);
@@ -176,6 +181,7 @@ function drawBom(ctxRadar, drawX, drawY, count) {
   ); // 画像データ、切り抜き左、切り抜き上、幅、幅、表示x、表示y、幅、幅
 }
 
+// ミサイルの表示
 function drawMissiles(missilesMany) {
   $('#missiles').empty();
   for (let i = 0; i < missilesMany; i++) {
@@ -183,16 +189,19 @@ function drawMissiles(missilesMany) {
   }
 }
 
+// 酸素タイマーの表示
 function drawAirTimer(airTime) {
   $('#air-time').text(airTime);
 }
 
+// スコアの表示
 function drawScore(score) {
   if (!gameObj.myPlayerObj.isAlive) return;
   if (!score) score = 0;
   $('#score').text(score);
 }
 
+// ランキングの表示
 function drawRanking(playersMap) {
   const playersArray = [].concat(Array.from(playersMap));
   playersArray.sort((a, b) => (b[1].score - a[1].score));
@@ -213,8 +222,9 @@ function drawRanking(playersMap) {
   }
 }
 
+// マップの描画
 function drawMap(gameObj) {
-  // 敵プレイヤーと NPC の描画
+  // 敵プレイヤーとNPCの描画
   for (let [key, enemyPlayerObj] of gameObj.playersMap) {
     if (key === gameObj.myPlayerObj.playerId) continue; // 自分は描画しない
     const distanceObj = calcBetweenTwoPoints(
@@ -307,6 +317,7 @@ function drawMap(gameObj) {
   }
 }
 
+// ゲームオーバーの描画
 function drawGameOver(ctxRadar) {
   ctxRadar.font = 'bold 76px arial black';
   ctxRadar.fillStyle = "rgb(0, 220, 250)";
@@ -319,6 +330,7 @@ function drawGameOver(ctxRadar) {
   ctxRadar.fillText('スペースキーでリスタート！', 100, 400);
 }
 
+// スタートメッセージの描画
 function drawStart(ctxRadar) {
   ctxRadar.font = 'bold 48px arial black';
   ctxRadar.fillStyle = "rgb(0, 220, 250)";
@@ -335,6 +347,7 @@ function getRadian(kakudo) {
   return kakudo * Math.PI / 180;
 }
 
+// オブジェクト間の距離を計算
 function calcBetweenTwoPoints(pX, pY, oX, oY, gameWidth, gameHeight, radarCanvasWidth, radarCanvasHeight) {
   let distanceX = 99999999;
   let distanceY = 99999999;
@@ -386,25 +399,27 @@ function calcBetweenTwoPoints(pX, pY, oX, oY, gameWidth, gameHeight, radarCanvas
   return { distanceX, distanceY, drawX, drawY, degree };
 }
 
+// 二点間の角度を計算
 function calcTwoPointsDegree(x1, y1, x2, y2) {
   const radian = Math.atan2(y2 - y1, x2 - x1);
   const degree = radian * 180 / Math.PI + 180;
   return degree;
 }
 
+// レーダーとアイテムとの角度差を計算
 function calcDegreeDiffFromRadar(degRadar, degItem) {
   let diff = degRadar - degItem;
-  if (diff < 0) {
-    diff += 360;
-  }
+  if (diff < 0) diff += 360;
   return diff;
 }
 
+// 角度差から透明度を計算
 function calcOpacity(degreeDiff) {
   degreeDiff = Math.abs(180 - degreeDiff);
   return ((degreeDiff / 180) ** 2).toFixed(2);
 }
 
+// 移動およびミサイル発射を検出
 $(window).keydown((event) => {
   if ($('input').is(':focus')) return;
   if (!gameObj.myPlayerObj || !gameObj.myPlayerObj.isAlive) return;
@@ -436,11 +451,12 @@ $(window).keydown((event) => {
     case ' ':
       event.preventDefault();
       if (gameObj.myPlayerObj.missilesMany <= 0) break;
-      sendMissileEmit(socket, gameObj.myPlayerObj.direction);
+      socket.emit('missile emit', gameObj.myPlayerObj.direction);
       break;
   }
 });
 
+// 押しっぱなし解除
 $(window).keyup((event) => {
   if ($('input').is(':focus')) return;
   if (!gameObj.myPlayerObj || !gameObj.myPlayerObj.isAlive) return;
@@ -460,6 +476,7 @@ $(window).keyup((event) => {
   }
 });
 
+// スタートを検出
 $(window).keydown((event) => {
   if ($('input').is(':focus')) return;
   if (gameObj.playersMap.get(gameObj.myPlayerObj.playerId)) return;
@@ -471,15 +488,13 @@ $(window).keydown((event) => {
   }
 });
 
+// スタートを検出
 $('#start').click(() => {
   if (gameObj.playersMap.get(gameObj.myPlayerObj.playerId)) return;
   sendStart(socket);
 });
 
-function sendMissileEmit(socket, direction) {
-  socket.emit('missile emit', direction);
-}
-
+// サーバーへスタートの合図を送る
 function sendStart(socket) {
   let displayName = $('#displayName').val().trim();
   if (!displayName) displayName = '名無しさん';
@@ -489,12 +504,14 @@ function sendStart(socket) {
   socket.emit('start game', displayName);
 }
 
+// スタート時にサーバーからデータを受け取る
 socket.on('start data', (startObj) => {
   gameObj.myPlayerObj = startObj.playerObj;
   gameObj.fieldWidth = startObj.fieldWidth;
   gameObj.fieldHeight = startObj.fieldHeight;
 });
 
+// 定期的にサーバーからデータを受け取る
 socket.on('map data', (compressed) => {
   const playersArray = compressed[0];
   const itemsArray = compressed[1];
