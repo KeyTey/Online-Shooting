@@ -34,6 +34,19 @@ const gameObj = {
   flyingMissilesMap: new Map()
 };
 
+const devise = (() => {
+  const ua = navigator.userAgent;
+  if (ua.indexOf('iPhone') > 0 || ua.indexOf('iPod') > 0 || ua.indexOf('Android') > 0 && ua.indexOf('Mobile') > 0) {
+    return 'Phone';
+  }
+  else if (ua.indexOf('iPad') > 0 || ua.indexOf('Android') > 0) {
+    return 'Tablet'
+  }
+  else {
+    return 'PC';
+  }
+})();
+
 const socket = io($('#main').attr('data-host'));
 
 function init() {
@@ -183,9 +196,12 @@ function drawBom(ctxRadar, drawX, drawY, count) {
 
 // ミサイルの表示
 function drawMissiles(missilesMany) {
-  $('#missiles').empty();
-  for (let i = 0; i < missilesMany; i++) {
-    $('#missiles').append('<img src="/images/missile.png">');
+  const beforeMissilesMany = $('#missiles').children().length;
+  const diffMissilesMany = Math.abs(missilesMany - beforeMissilesMany);
+  const img = '<img src="/images/missile.png">';
+  for (let i = 0; i < diffMissilesMany; i++) {
+    if (beforeMissilesMany < missilesMany) $('#missiles').append(img);
+    else $('#missiles').children().last().remove();
   }
 }
 
@@ -325,20 +341,22 @@ function drawGameOver(ctxRadar) {
   ctxRadar.strokeStyle = "rgb(0, 0, 0)";
   ctxRadar.lineWidth = 3;
   ctxRadar.strokeText('Game Over', 70, 320);
-  ctxRadar.font = 'bold 32px arial black';
+  ctxRadar.font = 'bold 28px arial black';
   ctxRadar.fillStyle = "rgb(0, 220, 250)";
-  ctxRadar.fillText('スペースキーでリスタート！', 100, 400);
+  if (devise === 'PC') ctxRadar.fillText('クリックまたはスペースキーでリスタート！', 25, 400);
+  else ctxRadar.fillText('画面タップでリスタート！', 150, 400);
 }
 
 // スタートメッセージの描画
 function drawStart(ctxRadar) {
-  ctxRadar.font = 'bold 48px arial black';
+  ctxRadar.font = 'bold 30px arial black';
   ctxRadar.fillStyle = "rgb(0, 220, 250)";
-  ctxRadar.fillText('スペースキーでスタート！', 20, 320);
+  if (devise === 'PC') ctxRadar.fillText('クリックまたはスペースキーでスタート！', 20, 300);
+  else ctxRadar.fillText('画面タップでスタート！', 150, 300);
   ctxRadar.font = 'bold 24px arial black';
   ctxRadar.fillStyle = "rgb(255, 255, 255)";
-  ctxRadar.fillText('矢印キー：移動', 40, 400);
-  ctxRadar.fillText('スペースキー：ミサイル発射', 40, 440);
+  ctxRadar.fillText(devise === 'PC' ? '矢印キー：移動' : '上下左右タップ：移動', 40, 400);
+  ctxRadar.fillText(devise === 'PC' ? 'スペースキー：ミサイル発射' : '中心タップ：ミサイル発射', 40, 440);
   ctxRadar.fillText('青玉：酸素補給', 40, 480);
   ctxRadar.fillText('橙玉：ミサイル補充', 40, 520);
 }
@@ -489,9 +507,54 @@ $(window).keydown((event) => {
 });
 
 // スタートを検出
+$('#radar').click(() => {
+  if (gameObj.playersMap.get(gameObj.myPlayerObj.playerId)) return;
+  sendStart(socket);
+});
+
+// スタートを検出
 $('#start').click(() => {
   if (gameObj.playersMap.get(gameObj.myPlayerObj.playerId)) return;
   sendStart(socket);
+});
+
+// 二点が近いかどうか
+function isNearPoint(pointX, pointY, mouseX, mouseY) {
+  return pointX - 100 < mouseX && mouseX < pointX + 100 && pointY - 100 < mouseY && mouseY < pointY + 100;
+}
+
+// 移動およびミサイル発射を検出 (PC以外)
+$('#radar').click((e) => {
+  if (devise === 'PC') return;
+  if (!gameObj.myPlayerObj || !gameObj.myPlayerObj.isAlive) return;
+  const rect = e.target.getBoundingClientRect();
+  const mouseX = e.clientX - Math.floor(rect.left);
+  const mouseY = e.clientY - Math.floor(rect.top);
+  const missilePoint = {x: gameObj.radarCanvasWidth / 2, y: gameObj.radarCanvasHeight / 2};
+  const leftPoint = {x: 100, y: gameObj.radarCanvasHeight / 2};
+  const upPoint = {x: gameObj.radarCanvasWidth / 2, y: 100};
+  const downPoint = {x: gameObj.radarCanvasWidth / 2, y: gameObj.radarCanvasHeight - 100};
+  const rightPoint = {x: gameObj.radarCanvasWidth - 100, y: gameObj.radarCanvasHeight / 2};
+  if (isNearPoint(missilePoint.x, missilePoint.y, mouseX, mouseY)) {
+    if (gameObj.myPlayerObj.missilesMany <= 0) return;
+    socket.emit('missile emit', gameObj.myPlayerObj.direction);
+  }
+  if (isNearPoint(leftPoint.x, leftPoint.y, mouseX, mouseY)) {
+    gameObj.myPlayerObj.speed = 2;
+    gameObj.myPlayerObj.direction = 'left';
+  }
+  if (isNearPoint(upPoint.x, upPoint.y, mouseX, mouseY)) {
+    gameObj.myPlayerObj.speed = 2;
+    gameObj.myPlayerObj.direction = 'up';
+  }
+  if (isNearPoint(downPoint.x, downPoint.y, mouseX, mouseY)) {
+    gameObj.myPlayerObj.speed = 2;
+    gameObj.myPlayerObj.direction = 'down';
+  }
+  if (isNearPoint(rightPoint.x, rightPoint.y, mouseX, mouseY)) {
+    gameObj.myPlayerObj.speed = 2;
+    gameObj.myPlayerObj.direction = 'right';
+  }
 });
 
 // サーバーへスタートの合図を送る
