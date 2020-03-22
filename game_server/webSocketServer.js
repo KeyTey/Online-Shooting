@@ -5,14 +5,8 @@ function createWebSocketServer(io, game) {
       const startObj = game.newConnection(socket.id, displayName);
       socket.emit('start data', startObj);
     });
-    socket.on('change direction', (direction) => {
-      game.updatePlayerDirection(socket.id, direction);
-    });
-    socket.on('speed up', () => {
-      game.updateSpeedUp(socket.id);
-    });
-    socket.on('speed down', () => {
-      game.updateSpeedDown(socket.id);
+    socket.on('update player', (player) => {
+      game.playerEmit(socket.id, player);
     });
     socket.on('missile emit', (direction) => {
       game.missileEmit(socket.id, direction);

@@ -12,7 +12,6 @@ const gameObj = {
   airRadius: 5,
   bomCellPx: 32,
   deg: 0,
-  counter: 0,
   rotationDegreeByDirection: {
     'left': 0,
     'up': 270,
@@ -61,6 +60,7 @@ init();
 
 function tickerRadar() {
   if (!gameObj.myPlayerObj || !gameObj.playersMap) return;
+  updatePlayerState(gameObj.myPlayerObj);
   gameObj.ctxRadar.clearRect(0, 0, gameObj.radarCanvasWidth, gameObj.radarCanvasHeight);
   if (gameObj.myPlayerObj.isAlive) drawRadar(gameObj.ctxRadar);
   drawMap(gameObj);
@@ -71,7 +71,7 @@ function tickerRadar() {
   if (gameObj.myPlayerObj.firstPlay) {
     drawStart(gameObj.ctxRadar);
   }
-  gameObj.counter = (gameObj.counter + 0.5) % 10000;
+  sendPlayerEmit(socket, gameObj.myPlayerObj);
 }
 
 function tickerScore() {
@@ -84,6 +84,35 @@ function tickerScore() {
 
 setInterval(tickerRadar, 10);
 setInterval(tickerScore, 100);
+
+function sendPlayerEmit(socket, player) {
+  const playerDataForSend = [];
+  playerDataForSend.push(player.x);
+  playerDataForSend.push(player.y);
+  playerDataForSend.push(player.direction);
+  socket.emit('update player', playerDataForSend);
+}
+
+function updatePlayerState(player) {
+  switch (player.direction) {
+    case 'left':
+      player.x -= player.speed;
+      break;
+    case 'up':
+      player.y -= player.speed;
+      break;
+    case 'down':
+      player.y += player.speed;
+      break;
+    case 'right':
+      player.x += player.speed;
+      break;
+  }
+  if (player.x > gameObj.fieldWidth) player.x -= gameObj.fieldWidth;
+  if (player.x < 0) player.x += gameObj.fieldWidth;
+  if (player.y < 0) player.y += gameObj.fieldHeight;
+  if (player.y > gameObj.fieldHeight) player.y -= gameObj.fieldHeight;
+}
 
 function drawRadar(ctxRadar) {
   const x = gameObj.radarCanvasWidth / 2;
@@ -382,35 +411,27 @@ $(window).keydown((event) => {
   switch (event.key) {
     case 'ArrowLeft':
       event.preventDefault();
-      sendSpeedUp(socket);
+      gameObj.myPlayerObj.speed = 2;
       if (gameObj.myPlayerObj.direction === 'left') break;
       gameObj.myPlayerObj.direction = 'left';
-      drawSubmarine(gameObj.ctxRadar, gameObj.myPlayerObj);
-      sendChangeDirection(socket, 'left');
       break;
     case 'ArrowUp':
       event.preventDefault();
-      sendSpeedUp(socket);
+      gameObj.myPlayerObj.speed = 2;
       if (gameObj.myPlayerObj.direction === 'up') break;
       gameObj.myPlayerObj.direction = 'up';
-      drawSubmarine(gameObj.ctxRadar, gameObj.myPlayerObj);
-      sendChangeDirection(socket, 'up');
       break;
     case 'ArrowDown':
       event.preventDefault();
-      sendSpeedUp(socket);
+      gameObj.myPlayerObj.speed = 2;
       if (gameObj.myPlayerObj.direction === 'down') break;
       gameObj.myPlayerObj.direction = 'down';
-      drawSubmarine(gameObj.ctxRadar, gameObj.myPlayerObj);
-      sendChangeDirection(socket, 'down');
       break;
     case 'ArrowRight':
       event.preventDefault();
-      sendSpeedUp(socket);
+      gameObj.myPlayerObj.speed = 2;
       if (gameObj.myPlayerObj.direction === 'right') break;
       gameObj.myPlayerObj.direction = 'right';
-      drawSubmarine(gameObj.ctxRadar, gameObj.myPlayerObj);
-      sendChangeDirection(socket, 'right');
       break;
     case ' ':
       event.preventDefault();
@@ -425,16 +446,16 @@ $(window).keyup((event) => {
   if (!gameObj.myPlayerObj || !gameObj.myPlayerObj.isAlive) return;
   switch (event.key) {
     case 'ArrowLeft':
-      sendSpeedDown(socket);
+      gameObj.myPlayerObj.speed = 1;
       break;
     case 'ArrowUp':
-      sendSpeedDown(socket);
+      gameObj.myPlayerObj.speed = 1;
       break;
     case 'ArrowDown':
-      sendSpeedDown(socket);
+      gameObj.myPlayerObj.speed = 1;
       break;
     case 'ArrowRight':
-      sendSpeedDown(socket);
+      gameObj.myPlayerObj.speed = 1;
       break;
   }
 });
@@ -454,18 +475,6 @@ $('#start').click(() => {
   if (gameObj.playersMap.get(gameObj.myPlayerObj.playerId)) return;
   sendStart(socket);
 });
-
-function sendChangeDirection(socket, direction) {
-  socket.emit('change direction', direction);
-}
-
-function sendSpeedUp(socket) {
-  socket.emit('speed up');
-}
-
-function sendSpeedDown(socket) {
-  socket.emit('speed down');
-}
 
 function sendMissileEmit(socket, direction) {
   socket.emit('missile emit', direction);

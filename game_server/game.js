@@ -35,8 +35,10 @@ const gameTicker = setInterval(() => {
   // NPC の行動選択
   NPCMoveDecision(gameObj.NPCMap);
   const playersAndNPCMap = new Map(Array.from(gameObj.playersMap).concat(Array.from(gameObj.NPCMap)));
-  // 潜水艦の移動
-  movePlayers(playersAndNPCMap);
+  // 状態更新
+  updateStates(playersAndNPCMap);
+  // NPC の移動
+  movePlayers(gameObj.NPCMap);
   // ミサイルの移動
   moveMissile(gameObj.flyingMissilesMap);
   // アイテムの取得チェック
@@ -185,19 +187,12 @@ function getMapData() {
   return [playersArray, itemsArray, airArray, flyingMissilesArray];
 }
 
-function updatePlayerDirection(socketId, direction) {
-  const playerObj = gameObj.playersMap.get(socketId);
-  playerObj.direction = direction;
-}
-
-function updateSpeedUp(socketId) {
-  const playerObj = gameObj.playersMap.get(socketId);
-  playerObj.speed = 2;
-}
-
-function updateSpeedDown(socketId) {
-  const playerObj = gameObj.playersMap.get(socketId);
-  playerObj.speed = 1;
+function playerEmit(socketId, playerData) {
+  const player = gameObj.playersMap.get(socketId);
+  if (!player) return;
+  player.x = playerData[0];
+  player.y = playerData[1];
+  player.direction = playerData[2];
 }
 
 function missileEmit(socketId, direction) {
@@ -254,8 +249,7 @@ function addAir() {
   gameObj.airMap.set(airKey, airObj);
 }
 
-// 潜水艦の移動
-function movePlayers(playersMap) {
+function updateStates(playersMap) {
   for (let [playerId, player] of playersMap) {
     if (!player.isAlive) {
       if (player.deadCount < 70) {
@@ -276,6 +270,24 @@ function movePlayers(playersMap) {
         player.damagedCount = 0;
       }
     }
+    player.aliveTime.clock += 1;
+    if (player.aliveTime.clock >= 100) {
+      player.aliveTime.clock = 0;
+      player.aliveTime.seconds += 1;
+      player.airTime -= 1;
+      if (player.airTime < 0) {
+        player.airTime = 0;
+        player.isAlive = false;
+      }
+      player.score += 2;
+    }
+  }
+}
+
+// 潜水艦の移動
+function movePlayers(playersMap) {
+  for (let [playerId, player] of playersMap) {
+    if (!player.isAlive) continue;
     switch (player.direction) {
       case 'left':
         player.x -= player.speed;
@@ -294,17 +306,6 @@ function movePlayers(playersMap) {
     if (player.x < 0) player.x += gameObj.fieldWidth;
     if (player.y < 0) player.y += gameObj.fieldHeight;
     if (player.y > gameObj.fieldHeight) player.y -= gameObj.fieldHeight;
-    player.aliveTime.clock += 1;
-    if (player.aliveTime.clock >= 100) {
-      player.aliveTime.clock = 0;
-      player.aliveTime.seconds += 1;
-      player.airTime -= 1;
-      if (player.airTime < 0) {
-        player.airTime = 0;
-        player.isAlive = false;
-      }
-      player.score += 2;
-    }
   }
 }
 
@@ -476,9 +477,7 @@ function calcBetweenTwoPoints(pX, pY, oX, oY, gameWidth, gameHeight) {
 module.exports = {
   newConnection,
   getMapData,
-  updatePlayerDirection,
-  updateSpeedUp,
-  updateSpeedDown,
+  playerEmit,
   missileEmit,
   disconnect
 };
