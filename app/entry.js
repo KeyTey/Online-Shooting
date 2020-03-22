@@ -71,6 +71,7 @@ function tickerRadar() {
   if (gameObj.myPlayerObj.firstPlay) {
     drawStart(gameObj.ctxRadar);
   }
+  sendPlayerEmit(socket, gameObj.myPlayerObj);
 }
 
 function tickerScore() {
@@ -79,7 +80,6 @@ function tickerScore() {
   drawMissiles(gameObj.myPlayerObj.missilesMany);
   drawScore(gameObj.myPlayerObj.score);
   drawRanking(gameObj.playersMap);
-  sendPlayerEmit(socket, gameObj.myPlayerObj);
 }
 
 setInterval(tickerRadar, 10);
