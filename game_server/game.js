@@ -45,6 +45,15 @@ const gameTicker = setInterval(() => {
   addNPC();
 }, 10);
 
+const missileTicker = setInterval(() => {
+  // NPCのミサイル発射
+  const target = getTopPlayer();
+  for (let [NPCId, NPCObj] of gameObj.NPCMap) {
+    NPCObj.missilesMany = 1;
+    if (Math.random() < 0.05) launchNPCMissile(NPCObj, target, 0.2);
+  }
+}, 200);
+
 // スコア１位のプレイヤーを取得
 function getTopPlayer() {
   let target = null;
@@ -82,39 +91,42 @@ function approachToTarget(NPCObj, target) {
 }
 
 // NPCの方向を決定
-function decideNPCDirection(NPCObj, target, probability) {
+function decideNPCDirection(NPCObj, probability) {
+  if (Math.random() < probability) randomDirection(NPCObj);
+}
+
+// NPCのミサイル発射
+function launchNPCMissile(NPCObj, target, probability) {
+  if (NPCObj.missilesMany <= 0) return;
   if (Math.random() < probability) {
-    if (!target) return randomDirection(NPCObj);
-    if (target.playerId === NPCObj.playerId) return randomDirection(NPCObj);
-    randomDirection(NPCObj);
+    missileEmit(NPCObj.playerId, NPCObj.direction);
+  }
+  else {
+    if (!target) return;
+    if ((NPCObj.direction === 'left' || NPCObj.direction === 'right') && Math.abs(target.y - NPCObj.y) < 200) {
+      missileEmit(NPCObj.playerId, NPCObj.direction);
+    }
+    if ((NPCObj.direction === 'up' || NPCObj.direction === 'down') && Math.abs(target.x - NPCObj.x) < 200) {
+      missileEmit(NPCObj.playerId, NPCObj.direction);
+    }
   }
 }
 
 // NPCの行動決定
 function NPCMoveDecision(NPCMap) {
-  const target = getTopPlayer();
   for (let [NPCId, NPCObj] of NPCMap) {
     switch (NPCObj.level) {
       case 1:
         NPCObj.speed = 1;
-        decideNPCDirection(NPCObj, target, 0.01);
-        if (NPCObj.missilesMany > 0 && Math.floor(Math.random() * 200) === 1) {
-          missileEmit(NPCObj.playerId, NPCObj.direction);
-        }
+        decideNPCDirection(NPCObj, 0.01);
         break;
       case 2:
         NPCObj.speed = 2;
-        decideNPCDirection(NPCObj, target, 0.02);
-        if (NPCObj.missilesMany > 0 && Math.floor(Math.random() * 150) === 1) {
-          missileEmit(NPCObj.playerId, NPCObj.direction);
-        }
+        decideNPCDirection(NPCObj, 0.02);
         break;
       case 3:
         NPCObj.speed = 2.5;
-        decideNPCDirection(NPCObj, target, 0.05);
-        if (NPCObj.missilesMany > 0 && Math.floor(Math.random() * 100) === 1) {
-          missileEmit(NPCObj.playerId, NPCObj.direction);
-        }
+        decideNPCDirection(NPCObj, 0.03);
         break;
     }
   }
