@@ -223,21 +223,54 @@ function drawScore(score) {
 
 // ランキングの表示
 function drawRanking(playersMap) {
+  const numRank = 8;
   const playersArray = [].concat(Array.from(playersMap));
   playersArray.sort((a, b) => (b[1].score - a[1].score));
+  // 人間を全て含めた上位 numRank 人の添字リスト
+  const indexList = (() => {
+    let count = 0;
+    let showList = playersArray.map((playerData) => {
+      if (playerData[1].isHuman && count < numRank) {
+        count++;
+        return true;
+      }
+      return false;
+    });
+    for (let i = 0; i < showList.length; i++) {
+      if (!showList[i] && count < numRank) {
+        count++;
+        showList[i] = true;
+      }
+    }
+    return showList.reduce((list, show, i) => {
+      if (show) list.push(i);
+      return list;
+    }, []);
+  })();
+  // ランキングの再描画
   $('#ranking').empty();
-  for (let i = 0; i < 8; i++) {
-    if (!playersArray[i]) return;
+  for (let i = 0; i < numRank; i++) {
+    const playerData = playersArray[indexList[i]];
+    if (!playerData) continue;
     const rank = i + 1;
-    let score = playersArray[i][1].score;
+    let score = playerData[1].score;
     if (score > 99999) score = 'MAX☆';
     $('#ranking').append(`<tr id="${rank}">
       <td>${rank}位</td>
-      <td>${playersArray[i][1].displayName}</td>
+      <td>${playerData[1].displayName}</td>
       <td>${score}</td>
     </tr>`);
-    if (gameObj.myPlayerObj.playerId === playersArray[i][0]) {
+    // 人間なら青色で表示
+    if (playerData[1].isHuman) {
+      $('#ranking').find(`#${rank}`).css('color', '#0000DD');
+    }
+    // 自分なら赤色で表示
+    if (gameObj.myPlayerObj.playerId === playerData[0]) {
       $('#ranking').find(`#${rank}`).css('color', '#DD0000');
+    }
+    // 1位なら虹色で表示
+    if (rank === 1) {
+      $('#ranking').find(`#${rank}`).children().attr('class', 'rainbow');
     }
   }
 }
@@ -607,6 +640,7 @@ socket.on('map data', (compressed) => {
     player.deadCount = compressedPlayerData[9];
     player.isDamaged = compressedPlayerData[10];
     player.damagedCount = compressedPlayerData[11];
+    player.isHuman = compressedPlayerData[12];
     gameObj.playersMap.set(player.playerId, player);
     // 自分の情報も更新
     if (player.playerId === gameObj.myPlayerObj.playerId) {

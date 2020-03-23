@@ -169,6 +169,7 @@ function getMapData() {
   const airArray = [];
   const flyingMissilesArray = [];
   const playersAndNPCMap = new Map(Array.from(gameObj.playersMap).concat(Array.from(gameObj.NPCMap)));
+  const isHuman = (socketId) => gameObj.playersMap.has(socketId);
   for (let [socketId, player] of playersAndNPCMap) {
     const playerDataForSend = [];
     playerDataForSend.push(player.x);
@@ -183,6 +184,7 @@ function getMapData() {
     playerDataForSend.push(player.deadCount);
     playerDataForSend.push(player.isDamaged);
     playerDataForSend.push(player.damagedCount);
+    playerDataForSend.push(isHuman(socketId));
     playersArray.push(playerDataForSend);
   }
   for (let [id, item] of gameObj.itemsMap) {
