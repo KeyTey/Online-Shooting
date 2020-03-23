@@ -226,11 +226,24 @@ function missileEmit(socketId, direction) {
   if (!emitPlayerObj.isAlive) return; // 死亡
   emitPlayerObj.missilesMany -= 1;
   const missileId = Math.floor(Math.random() * 10 ** 17).toString();
+  let missileX = emitPlayerObj.x;
+  let missileY = emitPlayerObj.y;
+  const delayDistance = 30;
+  if (gameObj.playersMap.has(socketId) && process.env.HOST) {
+    if (direction === 'left') missileX -= delayDistance;
+    if (direction === 'right') missileX += delayDistance;
+    if (direction === 'up') missileY -= delayDistance;
+    if (direction === 'down') missileY += delayDistance;
+    if (missileX > gameObj.fieldWidth) missileX -= gameObj.fieldWidth;
+    if (missileX < 0) missileX += gameObj.fieldWidth;
+    if (missileY < 0) missileY += gameObj.fieldHeight;
+    if (missileY > gameObj.fieldHeight) missileY -= gameObj.fieldHeight;
+  }
   const missileObj = {
     emitPlayerId: emitPlayerObj.playerId,
     emitPlayerSocketId: socketId,
-    x: emitPlayerObj.x,
-    y: emitPlayerObj.y,
+    x: missileX,
+    y: missileY,
     aliveFlame: gameObj.missileAliveFlame,
     direction: direction,
     id: missileId
