@@ -355,14 +355,22 @@ function drawGameOver(ctxRadar) {
 function drawStart(ctxRadar) {
   ctxRadar.font = 'bold 30px arial black';
   ctxRadar.fillStyle = "rgb(0, 220, 250)";
-  if (devise === 'PC') ctxRadar.fillText('クリックまたはスペースキーでスタート！', 20, 300);
-  else ctxRadar.fillText('画面タップでスタート！', 150, 300);
+  if (devise === 'PC') ctxRadar.fillText('クリックまたはスペースキーでスタート！', 20, 240);
+  else ctxRadar.fillText('画面タップでスタート！', 150, 240);
   ctxRadar.font = 'bold 24px arial black';
   ctxRadar.fillStyle = "rgb(255, 255, 255)";
-  ctxRadar.fillText(devise === 'PC' ? '矢印キー：移動' : '上下左右タップ：移動', 40, 400);
-  ctxRadar.fillText(devise === 'PC' ? 'スペースキー：ミサイル発射' : '中心タップ：ミサイル発射', 40, 440);
-  ctxRadar.fillText('青玉：酸素補給', 40, 480);
-  ctxRadar.fillText('橙玉：ミサイル補充', 40, 520);
+  ctxRadar.fillText('＜操作＞', 40, 340);
+  ctxRadar.fillText(devise === 'PC' ? '移動：矢印キー' : '移動：画面の上下左右をタップ', 40, 380);
+  ctxRadar.fillText(devise === 'PC' ? 'ミサイル発射：スペースキー' : 'ミサイル発射：画面の中央をタップ', 40, 420);
+  ctxRadar.fillText('＜アイテム＞', 40, 480);
+  ctxRadar.fillStyle = "rgb(255, 255, 255)";
+  ctxRadar.fillText('●：ライフ回復', 40, 520);
+  ctxRadar.fillStyle = "rgb(0, 220, 255)";
+  ctxRadar.fillText('●', 40, 520);
+  ctxRadar.fillStyle = "rgb(255, 255, 255)";
+  ctxRadar.fillText('●：ミサイル補充', 40, 560);
+  ctxRadar.fillStyle = "rgb(255, 165, 0)";
+  ctxRadar.fillText('●', 40, 560);
 }
 
 function getRadian(kakudo) {
