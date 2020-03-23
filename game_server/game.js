@@ -215,6 +215,7 @@ function playerEmit(socketId, playerData) {
   player.x = playerData[0];
   player.y = playerData[1];
   player.direction = playerData[2];
+  player.speed = playerData[3];
 }
 
 // クライアントからミサイル発射を受け取る
@@ -228,8 +229,9 @@ function missileEmit(socketId, direction) {
   const missileId = Math.floor(Math.random() * 10 ** 17).toString();
   let missileX = emitPlayerObj.x;
   let missileY = emitPlayerObj.y;
-  const delayDistance = 30;
   if (gameObj.playersMap.has(socketId) && process.env.HOST) {
+    const player = gameObj.playersMap.get(socketId);
+    const delayDistance = player.speed === 2 ? 50 : 30;
     if (direction === 'left') missileX -= delayDistance;
     if (direction === 'right') missileX += delayDistance;
     if (direction === 'up') missileY -= delayDistance;

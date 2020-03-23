@@ -104,6 +104,7 @@ function sendPlayerEmit(socket, player) {
   playerData.push(player.x);
   playerData.push(player.y);
   playerData.push(player.direction);
+  playerData.push(player.speed);
   socket.emit('update player', playerData);
 }
 
