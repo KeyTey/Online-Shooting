@@ -75,7 +75,8 @@ function tickerRadar() {
   if (!gameObj.myPlayerObj || !gameObj.playersMap) return;
   movePlayer(gameObj.myPlayerObj);
   gameObj.ctxRadar.clearRect(0, 0, gameObj.radarCanvasWidth, gameObj.radarCanvasHeight);
-  if (gameObj.myPlayerObj.isAlive) drawRadar(gameObj.ctxRadar);
+  drawBackground(gameObj.ctxRadar);
+  drawRadar(gameObj.ctxRadar);
   drawMap(gameObj);
   drawPlayer(gameObj.ctxRadar, gameObj.myPlayerObj);
   if (!gameObj.myPlayerObj.isAlive && gameObj.myPlayerObj.deadCount > 60) {
@@ -130,8 +131,17 @@ function movePlayer(player) {
   if (player.y > gameObj.fieldHeight) player.y -= gameObj.fieldHeight;
 }
 
+// 背景の描画
+function drawBackground(ctxRadar) {
+  if (gameObj.myPlayerObj.airTime < 20) {
+    ctxRadar.fillStyle = 'rgba(255, 0, 0, 0.2)';
+    ctxRadar.fillRect(0, 0, gameObj.radarCanvasWidth, gameObj.radarCanvasHeight);
+  }
+}
+
 // レーダーの描画
 function drawRadar(ctxRadar) {
+  if (!gameObj.myPlayerObj.isAlive) return;
   const x = gameObj.radarCanvasWidth / 2;
   const y = gameObj.radarCanvasHeight / 2;
   const r = gameObj.radarCanvasWidth * 1.5 / 2; // 対角線の長さの半分
