@@ -28,6 +28,6 @@ $ npm run watch
 
 ```
 $ heroku create
-$ heroku config:set HOST="<YOUR HOST>"
+$ heroku config:set HOST="https://example.herokuapp.com"
 $ git push heroku master
 ```
